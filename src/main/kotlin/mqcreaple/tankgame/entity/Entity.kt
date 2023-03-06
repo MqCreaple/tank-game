@@ -44,6 +44,18 @@ abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Do
             // TODO("Change orientation on game panel")
         }
 
+    // center of this entity
+    var xCenter
+        get() = x + width / 2
+        set(value) {
+            x = value - width / 2
+        }
+    var yCenter
+        get() = y + height / 2
+        set(value) {
+            y = value - height / 2
+        }
+
     // boundaries of this entity
     val xBound
         get() = arrayOf(x, x + width)

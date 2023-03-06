@@ -29,11 +29,11 @@ class Board(
     operator fun set(y: Int, x: Int, value: BackgroundBlock) {
         background[y][x] = BackgroundBlock.toChar(value)
         backgroundImage[y][x]?.let {
-            Platform.runLater { parentPane.children.remove(backgroundImage[y][x]) }
+            Platform.runLater { parentPane.children.remove(it) }
         }
         backgroundImage[y][x] = value.image?.let { ImageView(value.image) }
         backgroundImage[y][x]?.let {
-            Platform.runLater { parentPane.children.add(backgroundImage[y][x]) }
+            Platform.runLater { parentPane.children.add(it) }
         }
     }
 

@@ -13,9 +13,9 @@ class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Doubl
     Entity(gameIn, ImageView(BulletEntity::class.java.getResource("enemy_bullet.png")!!.toExternalForm()), x, y) {
 
     override val width: Double
-        get() = 0.2
+        get() = 0.1
     override val height: Double
-        get() = 0.2
+        get() = 0.1
     private val dirX: Double
     private val dirY: Double
 

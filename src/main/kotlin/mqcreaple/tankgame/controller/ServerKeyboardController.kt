@@ -7,9 +7,8 @@ import java.io.DataInputStream
 import java.net.ServerSocket
 import java.net.SocketException
 
-class ServerKeyboardController(port: UShort): Controller() {
+class ServerKeyboardController(serverSocket: ServerSocket): Controller() {
     private var keyPressed: MutableMap<KeyCode, Boolean> = KeyboardController.keyMap.keys.associateWithTo(mutableMapOf()) { false }
-    private val serverSocket = ServerSocket(port.toInt())
     private val controllerThread: Thread = Thread {
         while(true) {
             println("Waiting for player to connect...")
