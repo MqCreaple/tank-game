@@ -2,6 +2,7 @@ package mqcreaple.tankgame.board
 
 import javafx.application.Platform
 import javafx.scene.image.ImageView
+import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import kotlin.math.*
 
@@ -31,7 +32,13 @@ class Board(
         backgroundImage[y][x]?.let {
             Platform.runLater { parentPane.children.remove(it) }
         }
-        backgroundImage[y][x] = value.image?.let { ImageView(value.image) }
+        value.image?.let {
+            backgroundImage[y][x] =  ImageView(value.image)
+            AnchorPane.setLeftAnchor(backgroundImage[y][x], x * unitPixel)
+            AnchorPane.setBottomAnchor(backgroundImage[y][x], y * unitPixel)
+        } ?: run {
+            backgroundImage[y][x] = null
+        }
         backgroundImage[y][x]?.let {
             Platform.runLater { parentPane.children.add(it) }
         }

@@ -22,7 +22,7 @@ class ServerApplication : Application() {
         stage.scene = scene
         stage.show()
         // add game entity
-        val game = fxmlLoader.getController<BoardController>().game
+        val game = Game(fxmlLoader.getController(), true)
         stage.onCloseRequest = EventHandler { game.gameEnd = true }
         game.keyboardController = KeyboardController(scene)
         game.addEntity(TankEntity(game, 1, 0.5, 0.5, game.keyboardController))

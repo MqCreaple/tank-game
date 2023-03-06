@@ -12,8 +12,7 @@ class BlockEvent(val option: Option, val block: BackgroundBlock, game: Game): Ev
     override fun run() {
         when(option) {
             Option.REPLACE -> {
-                game.gui.board[block.y, block.x] = block;
-                TODO("Remove block from game panel")
+                game.gui.board[block.y, block.x] = block
             }
             Option.DESTROY -> {
                 game.gui.board[block.y, block.x] = Empty(block.y, block.x)

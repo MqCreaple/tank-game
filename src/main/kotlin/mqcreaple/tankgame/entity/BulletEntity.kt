@@ -31,10 +31,8 @@ class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Doubl
 
     override fun onCollideWithBlock(block: BackgroundBlock, board: Board) {
         super.onCollideWithBlock(block, board)
-        if(block is Wall) {
-            if(block.canDestruct) {
-                gameIn.destroyBlock(block)
-            }
+        if(block is Wall && block.canDestruct) {
+            gameIn.destroyBlock(block)
         }
         this.kill()
     }
