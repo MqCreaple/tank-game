@@ -1,11 +1,9 @@
 package mqcreaple.tankgame.entity
 
-import javafx.application.Platform
 import javafx.scene.image.ImageView
 import javafx.scene.layout.AnchorPane
-import javafx.scene.transform.Rotate
 import mqcreaple.tankgame.Direction
-import mqcreaple.tankgame.Game
+import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.event.EntityCollisionEvent

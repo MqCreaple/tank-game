@@ -1,6 +1,6 @@
 package mqcreaple.tankgame.event
 
-import mqcreaple.tankgame.Game
+import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Empty
 

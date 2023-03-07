@@ -1,7 +1,7 @@
 package mqcreaple.tankgame.event
 
 import javafx.application.Platform
-import mqcreaple.tankgame.Game
+import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.entity.Entity
 
 class EntityEvent(val option: Option, val entity: Entity, game: Game): Event(game) {

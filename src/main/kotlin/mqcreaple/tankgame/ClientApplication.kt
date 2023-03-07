@@ -6,14 +6,11 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
 import mqcreaple.tankgame.controller.KeyboardController
+import mqcreaple.tankgame.game.ClientGame
 import java.net.Socket
 
 class ClientApplication: Application() {
     override fun start(stage: Stage) {
-        // get a valid IP address from stdin
-        println("Please enter an IP address and port number, separated with a space")
-        val line: List<String> = readLine()!!.split(' ')
-        val socket = Socket(line[0], line[1].toInt())
         // load GUI
         val fxmlLoader = FXMLLoader(ClientApplication::class.java.getResource("board.fxml"))
         val scene = Scene(fxmlLoader.load())
@@ -22,10 +19,10 @@ class ClientApplication: Application() {
         stage.scene = scene
         stage.show()
         // initialize game object
-        val game = Game(fxmlLoader.getController(), false)
+        val game = ClientGame(fxmlLoader.getController())
         stage.onCloseRequest = EventHandler { game.gameEnd = true }
-        game.keyboardController = KeyboardController(scene, socket)
-        val gameThread = Thread(game::gameLoop)
+        game.keyboardController = KeyboardController(scene, game.socket)
+        val gameThread = Thread(game::gameMain)
         gameThread.name = "Game Thread"
         gameThread.start()
     }

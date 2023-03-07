@@ -1,17 +1,15 @@
-package mqcreaple.tankgame
+package mqcreaple.tankgame.game
 
 import javafx.application.Platform
+import mqcreaple.tankgame.BoardController
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.controller.KeyboardController
-import mqcreaple.tankgame.controller.ServerKeyboardController
 import mqcreaple.tankgame.entity.Entity
 import mqcreaple.tankgame.event.BlockEvent
 import mqcreaple.tankgame.event.EntityEvent
 import mqcreaple.tankgame.event.Event
 import java.time.Duration
 import java.time.Instant
-import java.util.*
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.ArrayDeque
 import kotlin.collections.ArrayList
 import kotlin.math.max
@@ -22,14 +20,13 @@ import kotlin.math.max
  * @property server if this game runs on the server side
  * @property entityList List of all entities in current game
  */
-class Game(val gui: BoardController, val server: Boolean) {
+abstract class Game(val gui: BoardController, val server: Boolean) {
     var entityList: ArrayList<Entity> = ArrayList()
     var lastInstant: Instant = Instant.now()
     var lastFPS: Double = FPS
     var gameEnd: Boolean = false
     var eventQueue: ArrayDeque<Event> = ArrayDeque()
     lateinit var keyboardController: KeyboardController
-    lateinit var networkController: ServerKeyboardController
 
     fun addEntity(entity: Entity) {
         eventQueue.add(EntityEvent(EntityEvent.Option.CREATE, entity, this))
@@ -43,19 +40,10 @@ class Game(val gui: BoardController, val server: Boolean) {
         eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block, this))
     }
 
-    fun gameLoop() {
+    fun gameMain() {
+        gameInit()
         while(!gameEnd) {
-            // handle all events
-            while(!eventQueue.isEmpty()) {
-                val event = eventQueue.removeFirst()
-                event.run()
-            }
-            // update all entity
-            synchronized(entityList) {
-                for(entity in entityList) {
-                    entity.update(gui.board)
-                }
-            }
+            update()
 
             // calculate and monitor fps
             val inst1 = Instant.now()
@@ -67,7 +55,27 @@ class Game(val gui: BoardController, val server: Boolean) {
             lastFPS = 1e9 / duration2
             syncChanges()
         }
+        gameTerminate()
     }
+
+    /**
+     * Function called when the game initializes
+     */
+    open fun gameInit() {}
+
+    /**
+     * Handle events.
+     *
+     * This function would be implemented differently for server and client.
+     * - on server side, all `run` functions of every event will be called, and every event will be sent to client sockets.
+     * - on client side, it will receive the event objects and call their `run` function.
+     */
+    abstract fun update()
+
+    /**
+     * Function called when the game terminates
+     */
+    open fun gameTerminate() {}
 
     companion object {
         // Reference fps. The real fps may be different from this value.
@@ -75,6 +83,10 @@ class Game(val gui: BoardController, val server: Boolean) {
     }
 
     private var changeCounter = 0
+
+    /**
+     * Synchronize changes in game objects to GUI.
+     */
     private fun syncChanges() {
         Platform.runLater {
             if(changeCounter % 10 == 0) {

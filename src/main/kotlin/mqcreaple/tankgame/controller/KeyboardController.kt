@@ -11,7 +11,7 @@ import java.net.Socket
 class KeyboardController(scene: Scene, socket: Socket?): Controller() {
     constructor(scene: Scene): this(scene, null)
 
-    private val stream: OutputStream? = socket?.let { println("Connected to remote host"); socket.getOutputStream() }
+    private val stream: OutputStream? = socket?.getOutputStream()
     private var keyPressed: MutableMap<KeyCode, Boolean> = keyMap.keys.associateWithTo(mutableMapOf()) { false }
 
     init {

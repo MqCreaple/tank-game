@@ -1,11 +1,9 @@
 package mqcreaple.tankgame.entity
 
 import javafx.scene.image.ImageView
-import mqcreaple.tankgame.Direction
-import mqcreaple.tankgame.Game
+import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
-import mqcreaple.tankgame.board.Empty
 import mqcreaple.tankgame.board.Wall
 import kotlin.math.hypot
 

@@ -5,16 +5,15 @@ import mqcreaple.tankgame.Direction
 import mqcreaple.tankgame.utils.ByteOrder
 import java.io.DataInputStream
 import java.net.ServerSocket
+import java.net.Socket
 import java.net.SocketException
 
-class ServerKeyboardController(serverSocket: ServerSocket): Controller() {
+class ServerKeyboardController(clientSocket: Socket): Controller() {
     private var keyPressed: MutableMap<KeyCode, Boolean> = KeyboardController.keyMap.keys.associateWithTo(mutableMapOf()) { false }
     private val controllerThread: Thread = Thread {
-        while(true) {
-            println("Waiting for player to connect...")
-            val socket = serverSocket.accept()
-            println("Player connected.")
-            val socketStream = DataInputStream(socket.getInputStream())
+        var disconnected = false
+        while(!disconnected) {
+            val socketStream = DataInputStream(clientSocket.getInputStream())
             val buffer = byteArrayOf(0, 0, 0, 0, 0)
             var length = 0
             do {
@@ -35,7 +34,9 @@ class ServerKeyboardController(serverSocket: ServerSocket): Controller() {
                         }
                     }
                 } catch(e: SocketException) {
-                    println("Player disconnected...")
+                    // Player disconnected. Signal the server's network monitor thread to remove the player.
+                    clientSocket.close()
+                    disconnected = true
                     break
                 }
             } while(length != 0)

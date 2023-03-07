@@ -1,7 +1,7 @@
 package mqcreaple.tankgame.entity
 
 import javafx.scene.image.ImageView
-import mqcreaple.tankgame.Game
+import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.controller.Controller
 
