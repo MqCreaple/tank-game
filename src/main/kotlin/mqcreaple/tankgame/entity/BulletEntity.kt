@@ -7,7 +7,7 @@ import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.board.Wall
 import kotlin.math.hypot
 
-class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Double):
+open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Double):
     Entity(gameIn, ImageView(BulletEntity::class.java.getResource("enemy_bullet.png")!!.toExternalForm()), x, y) {
 
     override val width: Double

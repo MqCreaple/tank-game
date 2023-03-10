@@ -23,6 +23,14 @@ class TankEntity(gameIn: Game, val player: Int, x: Double, y: Double, controller
             orientation.x.toDouble(),
             orientation.y.toDouble()
         )
+        /*val bullet = PathFindBulletEntity(
+            gameIn,
+            if(orientation.x == 0) ((xBound[0] + xBound[1]) / 2) else xBound[if(orientation.x > 0) 1 else 0],
+            if(orientation.y == 0) ((yBound[0] + yBound[1]) / 2) else yBound[if(orientation.y > 0) 1 else 0],
+            0, 0,
+            orientation.x.toDouble(),
+            orientation.y.toDouble()
+        )*/
         if(orientation.x == 0) {
             bullet.x -= bullet.width / 2
             if(orientation.y < 0) {

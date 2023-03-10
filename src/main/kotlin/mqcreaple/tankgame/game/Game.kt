@@ -46,6 +46,7 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
             update()
 
             // calculate and monitor fps
+            // TODO("Only Server needs to monitor FPS. Clients should wait for server to send signal each time.")
             val inst1 = Instant.now()
             val duration = Duration.between(lastInstant, inst1).toNanos()
             Thread.sleep(max(0, ((1e9 / FPS - duration) / 1e6).toLong()))
