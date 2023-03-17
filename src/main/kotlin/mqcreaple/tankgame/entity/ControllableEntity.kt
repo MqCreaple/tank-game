@@ -7,17 +7,17 @@ import mqcreaple.tankgame.controller.Controller
 
 abstract class ControllableEntity(
     gameIn: Game,
-    guiNode: ImageView,
+    imagePath: String,
     x: Double,
     y: Double,
     private val controller: Controller
-) : Entity(gameIn, guiNode, x, y) {
-    override fun update(board: Board) {
+) : Entity(gameIn, imagePath, x, y) {
+    override fun update(gameIn: Game, board: Board) {
         val action = controller.actionAfterCoolDown
         if(action is Controller.Action.MOVE) {
             val newX = x + velocity / gameIn.lastFPS * action.dir.x
             val newY = y + velocity / gameIn.lastFPS * action.dir.y
-            tryMove(newX, newY, board)
+            tryMove(newX, newY, gameIn, board)
             orientation = action.dir
         }
         if(action == Controller.Action.ACT) {

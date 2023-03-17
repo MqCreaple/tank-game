@@ -1,43 +1,46 @@
 package mqcreaple.tankgame.game
 
 import javafx.application.Platform
+import javafx.scene.image.ImageView
 import mqcreaple.tankgame.BoardController
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.controller.KeyboardController
 import mqcreaple.tankgame.entity.Entity
 import mqcreaple.tankgame.event.BlockEvent
-import mqcreaple.tankgame.event.EntityEvent
+import mqcreaple.tankgame.event.EntityCreateEvent
+import mqcreaple.tankgame.event.EntityRemoveEvent
 import mqcreaple.tankgame.event.Event
 import java.time.Duration
 import java.time.Instant
+import java.util.*
 import kotlin.collections.ArrayDeque
-import kotlin.collections.ArrayList
 import kotlin.math.max
 
 /**
  * A tank game.
  * @property gui Graphic UI of this game
  * @property server if this game runs on the server side
- * @property entityList List of all entities in current game
+ * @property entityMap Mapping from entity's UUID to the entity object
  */
 abstract class Game(val gui: BoardController, val server: Boolean) {
-    var entityList: ArrayList<Entity> = ArrayList()
+    var entityMap: MutableMap<UUID, Entity> = mutableMapOf()
+    var imageMap: MutableMap<UUID, ImageView> = mutableMapOf()
     var lastInstant: Instant = Instant.now()
     var lastFPS: Double = FPS
     var gameEnd: Boolean = false
     var eventQueue: ArrayDeque<Event> = ArrayDeque()
     lateinit var keyboardController: KeyboardController
 
-    fun addEntity(entity: Entity) {
-        eventQueue.add(EntityEvent(EntityEvent.Option.CREATE, entity, this))
+    fun scheduledAddEntity(entity: Entity) {
+        eventQueue.add(EntityCreateEvent(entity))
     }
 
-    fun removeEntity(entity: Entity) {
-        eventQueue.add(EntityEvent(EntityEvent.Option.REMOVE, entity, this))
+    fun scheduledRemoveEntity(entity: Entity) {
+        eventQueue.add(EntityRemoveEvent(entity.uuid))
     }
 
-    fun destroyBlock(block: BackgroundBlock) {
-        eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block, this))
+    fun scheduledDestroyBlock(block: BackgroundBlock) {
+        eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block))
     }
 
     fun gameMain() {
@@ -46,7 +49,6 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
             update()
 
             // calculate and monitor fps
-            // TODO("Only Server needs to monitor FPS. Clients should wait for server to send signal each time.")
             val inst1 = Instant.now()
             val duration = Duration.between(lastInstant, inst1).toNanos()
             Thread.sleep(max(0, ((1e9 / FPS - duration) / 1e6).toLong()))

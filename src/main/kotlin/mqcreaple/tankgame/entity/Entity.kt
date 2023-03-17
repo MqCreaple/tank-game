@@ -8,34 +8,32 @@ import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.event.EntityCollisionEvent
 import mqcreaple.tankgame.utils.Overlap
+import java.io.Serializable
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Double) {
-    constructor(gameIn: Game, guiNode: ImageView): this(gameIn, guiNode, 0.0, 0.0)
+abstract class Entity(gameIn: Game, val imagePath: String, x: Double, y: Double): Serializable {
+    constructor(gameIn: Game, imagePath: String): this(gameIn, imagePath, 0.0, 0.0)
+
+    val uuid: UUID = UUID.randomUUID()
 
     abstract val width: Double
     abstract val height: Double
 
-    init {
-        guiNode.fitWidth = width * Board.unitPixel
-        guiNode.fitHeight = height * Board.unitPixel
-        AnchorPane.setLeftAnchor(guiNode, x * Board.unitPixel)
-        AnchorPane.setBottomAnchor(guiNode, y * Board.unitPixel)
-    }
-
     // x coordinate (relative to left edge)
     var x: Double = x
-        set(value) {
-            AnchorPane.setLeftAnchor(guiNode, x * Board.unitPixel)
-            field = value
-        }
+    fun setX(value: Double, gameIn: Game) {
+        AnchorPane.setLeftAnchor(gameIn.imageMap[uuid], x * Board.unitPixel)
+        x = value
+    }
     // y coordinate (relative to bottom edge)
     var y: Double = y
-        set(value) {
-            AnchorPane.setBottomAnchor(guiNode, y * Board.unitPixel)
-            field = value
-        }
+        get() = field
+    fun setY(value: Double, gameIn: Game) {
+        AnchorPane.setBottomAnchor(gameIn.imageMap[uuid], y * Board.unitPixel)
+        y = value
+    }
     open var orientation: Direction = Direction.UP
         set(value) {
             field = value
@@ -43,16 +41,16 @@ abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Do
         }
 
     // center of this entity
-    var xCenter
+    val xCenter
         get() = x + width / 2
-        set(value) {
-            x = value - width / 2
-        }
-    var yCenter
+    fun setXCenter(value: Double, gameIn: Game) {
+        setX(value - width / 2, gameIn)
+    }
+    val yCenter
         get() = y + height / 2
-        set(value) {
-            y = value - height / 2
-        }
+    fun setYCenter(value: Double, gameIn: Game) {
+        setY(value - height / 2, gameIn)
+    }
 
     // boundaries of this entity
     val xBound
@@ -64,22 +62,22 @@ abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Do
      * Try to move to a new location.
      * If the location is out of bound or unreachable, cancel the movement
      */
-    fun tryMove(newX: Double, newY: Double, board: Board) {
+    fun tryMove(newX: Double, newY: Double, gameIn: Game, board: Board) {
         // detect collision with boarders
         if(newX <= 0 || newX + width >= board.width.toDouble() || newY <= 0 || newY + height >= board.height.toDouble()) {
-            onCollideWithBorder(board)
+            onCollideWithBorder(gameIn, board)
         }
         // detect collision with blocks
         val boundNewX = max(0.0, min(board.width.toDouble(), newX))
         val boundNewY = max(0.0, min(board.height.toDouble(), newY))
         val blocks = board.getCoveredBlocks(boundNewX, boundNewY, width, height)
         if(blocks.all { b -> b.canPass }) {
-            x = boundNewX
-            y = boundNewY
+            setX(boundNewX, gameIn)
+            setY(boundNewY, gameIn)
         }
-        blocks.forEach { block -> onCollideWithBlock(block, board) }
+        blocks.forEach { block -> onCollideWithBlock(block, gameIn, board) }
         // detect collision with other entities
-        for(entity in gameIn.entityList) {
+        for((uuid, entity) in gameIn.entityMap) {
             if(entity == this) {
                 continue
             }
@@ -87,7 +85,7 @@ abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Do
                 Overlap.interval(xBound[0], xBound[1], entity.xBound[0], entity.xBound[1]) &&
                 Overlap.interval(yBound[0], yBound[1], entity.yBound[0], entity.yBound[1])
             ) {
-                gameIn.eventQueue.add(EntityCollisionEvent(gameIn, this, entity))
+                gameIn.eventQueue.add(EntityCollisionEvent(this.uuid, entity.uuid))
             }
         }
     }
@@ -95,27 +93,27 @@ abstract class Entity(var gameIn: Game, var guiNode: ImageView, x: Double, y: Do
     /**
      * This function is called in every frame update
      */
-    abstract fun update(board: Board)
+    abstract fun update(gameIn: Game, board: Board)
 
     /**
      * Event when the entity collides with a non-empty block
      */
-    open fun onCollideWithBlock(block: BackgroundBlock, board: Board) {}
+    open fun onCollideWithBlock(block: BackgroundBlock, gameIn: Game, board: Board) {}
 
     /**
      * Event when the entity hits the boarder of game board
      */
-    open fun onCollideWithBorder(board: Board) {}
+    open fun onCollideWithBorder(gameIn: Game, board: Board) {}
 
     /**
      * Event when the entity collides with another entity
      */
-    open fun onCollideWithEntity(entity: Entity) {}
+    open fun onCollideWithEntity(entity: Entity, gameIn: Game) {}
 
     /**
      * Destruct this entity
      */
-    open fun kill() {
-        gameIn.removeEntity(this)
+    open fun kill(gameIn: Game) {
+        gameIn.scheduledRemoveEntity(this)
     }
 }

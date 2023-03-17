@@ -5,8 +5,8 @@ import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.controller.Controller
 
-class TankEntity(gameIn: Game, val player: Int, x: Double, y: Double, controller: Controller) : ControllableEntity(
-    gameIn, ImageView(TankEntity::class.java.getResource("player${player}_tank_up.png")!!.toExternalForm()), x, y, controller
+class TankEntity(gameIn: Game, player: Int, x: Double, y: Double, controller: Controller) : ControllableEntity(
+    gameIn, "player${player}_tank_up.png", x, y, controller
 ) {
     override val velocity: Double
         get() = 2.0
@@ -43,13 +43,13 @@ class TankEntity(gameIn: Game, val player: Int, x: Double, y: Double, controller
                 bullet.x -= bullet.width
             }
         }
-        gameIn.addEntity(bullet)
+        gameIn.scheduledAddEntity(bullet)
     }
 
-    override fun onCollideWithEntity(entity: Entity) {
+    override fun onCollideWithEntity(entity: Entity, gameIn: Game) {
         if(entity is BulletEntity) {
-            this.kill()
-            entity.kill()
+            this.kill(gameIn)
+            entity.kill(gameIn)
         }
     }
 }

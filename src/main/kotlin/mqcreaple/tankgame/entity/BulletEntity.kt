@@ -8,7 +8,7 @@ import mqcreaple.tankgame.board.Wall
 import kotlin.math.hypot
 
 open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Double):
-    Entity(gameIn, ImageView(BulletEntity::class.java.getResource("enemy_bullet.png")!!.toExternalForm()), x, y) {
+    Entity(gameIn, "enemy_bullet.png", x, y) {
 
     override val width: Double
         get() = 0.1
@@ -23,21 +23,21 @@ open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: 
         this.dirY = dirY * velocity / magnitude
     }
 
-    override fun update(board: Board) {
-        tryMove(x + dirX / gameIn.lastFPS, y + dirY / gameIn.lastFPS, board)
+    override fun update(gameIn: Game, board: Board) {
+        tryMove(x + dirX / gameIn.lastFPS, y + dirY / gameIn.lastFPS, gameIn, board)
     }
 
-    override fun onCollideWithBlock(block: BackgroundBlock, board: Board) {
-        super.onCollideWithBlock(block, board)
+    override fun onCollideWithBlock(block: BackgroundBlock, gameIn: Game, board: Board) {
+        super.onCollideWithBlock(block, gameIn, board)
         if(block is Wall && block.canDestruct) {
-            gameIn.destroyBlock(block)
+            gameIn.scheduledDestroyBlock(block)
         }
-        this.kill()
+        this.kill(gameIn)
     }
 
-    override fun onCollideWithBorder(board: Board) {
-        super.onCollideWithBorder(board)
-        this.kill()
+    override fun onCollideWithBorder(gameIn: Game, board: Board) {
+        super.onCollideWithBorder(gameIn, board)
+        this.kill(gameIn)
     }
 
     val velocity: Double

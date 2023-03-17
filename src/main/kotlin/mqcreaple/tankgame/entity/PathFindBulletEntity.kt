@@ -25,7 +25,7 @@ class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, tar
     var path = gameIn.gui.board.getPath(y.toInt(), x.toInt(), targetY, targetX)
     private var curAt = 0
 
-    override fun update(board: Board) {
+    override fun update(gameIn: Game, board: Board) {
         path?.let {
             // there is a path from start to end, then follow the path
             val newX = x + it[curAt].x * velocity/ gameIn.lastFPS
@@ -38,10 +38,10 @@ class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, tar
                     path = null
                 }
             }
-            tryMove(newX, newY, board)
+            tryMove(newX, newY, gameIn, board)
         } ?: run {
             // no path exists from start to end, then follow default direction
-            super.update(board)
+            super.update(gameIn, board)
         }
     }
 }

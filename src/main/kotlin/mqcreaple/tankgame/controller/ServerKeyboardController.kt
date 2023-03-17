@@ -25,7 +25,7 @@ class ServerKeyboardController(clientSocket: Socket): Controller() {
                     if(length == -1) {
                         break
                     }
-                    val keyCode = ByteOrder.fromNetOrd(buffer)
+                    val keyCode = ByteOrder.fromNetOrdInt(buffer)
                     val action = (buffer[4] == 0x00.toByte())
                     for(k in keyPressed.keys) {
                         if(k.code == keyCode) {
