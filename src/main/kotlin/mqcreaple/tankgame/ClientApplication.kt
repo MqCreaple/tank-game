@@ -11,6 +11,11 @@ import java.net.Socket
 
 class ClientApplication: Application() {
     override fun start(stage: Stage) {
+        println("Please give your tank a name: ")
+        val name = readLine()!!
+        println("Please enter server's IP address and port, separated by a single space character:")
+        val line: List<String> = readLine()!!.split(' ')
+        val socket = Socket(line[0], line[1].toInt())
         // load GUI
         val fxmlLoader = FXMLLoader(ClientApplication::class.java.getResource("board.fxml"))
         val scene = Scene(fxmlLoader.load())
@@ -19,7 +24,7 @@ class ClientApplication: Application() {
         stage.scene = scene
         stage.show()
         // initialize game object
-        val game = ClientGame(fxmlLoader.getController())
+        val game = ClientGame(fxmlLoader.getController(), name, socket)
         stage.onCloseRequest = EventHandler { game.gameEnd = true }
         game.keyboardController = KeyboardController(scene, game.socket)
         val gameThread = Thread(game::gameMain)

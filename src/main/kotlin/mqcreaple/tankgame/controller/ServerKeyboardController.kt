@@ -10,7 +10,7 @@ import java.net.SocketException
 
 class ServerKeyboardController(clientSocket: Socket): Controller() {
     private var keyPressed: MutableMap<KeyCode, Boolean> = KeyboardController.keyMap.keys.associateWithTo(mutableMapOf()) { false }
-    private val controllerThread: Thread = Thread {
+    val controllerThread: Thread = Thread {
         var disconnected = false
         while(!disconnected) {
             val socketStream = DataInputStream(clientSocket.getInputStream())

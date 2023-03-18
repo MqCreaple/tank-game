@@ -29,7 +29,11 @@ class BoardController {
 
     @FXML
     fun initialize() {
-        board = Board.parseString(File("board.txt").readText(), gamePane)
+        initialize(File("board.txt").readText())
+    }
+
+    fun initialize(boardStr: String) {
+        board = Board.parseString(boardStr, gamePane)
 
         Board.unitPixel = min(gamePane.prefWidth / board.width, gamePane.prefHeight / board.height)
         for(i in 0 until board.height) {

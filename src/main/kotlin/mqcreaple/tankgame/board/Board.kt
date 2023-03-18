@@ -158,4 +158,8 @@ class Board(
             return abs(ax - bx) + abs(ay - by)
         }
     }
+
+    override fun toString(): String {
+        return background.joinToString(separator = "\r\n", transform = {array -> String(array)})
+    }
 }

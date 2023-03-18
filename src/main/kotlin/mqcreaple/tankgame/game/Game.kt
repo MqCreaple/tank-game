@@ -40,7 +40,7 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
     }
 
     fun scheduledDestroyBlock(block: BackgroundBlock) {
-        eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block))
+        eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block.x, block.y, BackgroundBlock.toChar(block)))
     }
 
     fun gameMain() {

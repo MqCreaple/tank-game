@@ -30,6 +30,7 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
         Thread {
             // This thread handles new client connection
             // TODO (potential DDOS attack)
+            // TODO (add lock to each field outside this thread)
             while(!gameEnd) {
                 // try to accept a new connection
                 val socket = serverSocket.accept()
@@ -41,6 +42,7 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                         println("Player $name disconnected.")
                         playerList.remove(name)
                         scheduledRemoveEntity(player.tank)
+                        player.controller.controllerThread.join()
                     }
                 }
                 try {
@@ -60,6 +62,8 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                     val tank = TankEntity(this, 1, 0.0, 0.0, controller)
                     playerList[name] = Player(socket, iStream, oStream, controller, tank)
                     scheduledAddEntity(tank)  // add tank entity to game's entity list in the start of next game loop
+                    oStream.writeUTF(gui.board.toString()) // write current game board to the stream
+                    oStream.flush()
                 } catch(e: IOException) {
                     // ignore IO exception
                 }
