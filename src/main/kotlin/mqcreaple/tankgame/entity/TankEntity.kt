@@ -5,8 +5,8 @@ import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.controller.Controller
 
-class TankEntity(gameIn: Game, player: Int, x: Double, y: Double, controller: Controller) : ControllableEntity(
-    gameIn, "player${player}_tank_up.png", x, y, controller
+class TankEntity(gameIn: Game, player: Int, x: Double, y: Double, controllerName: String) : ControllableEntity(
+    gameIn, "player${player}_tank_up.png", x, y, controllerName
 ) {
     override val velocity: Double
         get() = 2.0

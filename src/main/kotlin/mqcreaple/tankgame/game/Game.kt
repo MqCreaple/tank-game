@@ -10,6 +10,7 @@ import mqcreaple.tankgame.event.BlockEvent
 import mqcreaple.tankgame.event.EntityCreateEvent
 import mqcreaple.tankgame.event.EntityRemoveEvent
 import mqcreaple.tankgame.event.Event
+import java.io.Serializable
 import java.time.Duration
 import java.time.Instant
 import java.util.*
@@ -32,15 +33,21 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
     lateinit var keyboardController: KeyboardController
 
     fun scheduledAddEntity(entity: Entity) {
-        eventQueue.add(EntityCreateEvent(entity))
+        synchronized(eventQueue) {
+            eventQueue.add(EntityCreateEvent(entity))
+        }
     }
 
     fun scheduledRemoveEntity(entity: Entity) {
-        eventQueue.add(EntityRemoveEvent(entity.uuid))
+        synchronized(eventQueue) {
+            eventQueue.add(EntityRemoveEvent(entity.uuid))
+        }
     }
 
     fun scheduledDestroyBlock(block: BackgroundBlock) {
-        eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block.x, block.y, BackgroundBlock.toChar(block)))
+        synchronized(eventQueue) {
+            eventQueue.add(BlockEvent(BlockEvent.Option.DESTROY, block.x, block.y, BackgroundBlock.toChar(block)))
+        }
     }
 
     fun gameMain() {
@@ -101,4 +108,6 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
             changeCounter++
         }
     }
+
+    data class EntityPosition(val uuid: UUID, val x: Double, val y: Double): Serializable
 }

@@ -1,10 +1,10 @@
 package mqcreaple.tankgame.entity
 
-import javafx.scene.image.ImageView
 import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.board.Wall
+import mqcreaple.tankgame.game.ServerGame
 import kotlin.math.hypot
 
 open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Double):
@@ -23,7 +23,7 @@ open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: 
         this.dirY = dirY * velocity / magnitude
     }
 
-    override fun update(gameIn: Game, board: Board) {
+    override fun update(gameIn: ServerGame, board: Board) {
         tryMove(x + dirX / gameIn.lastFPS, y + dirY / gameIn.lastFPS, gameIn, board)
     }
 

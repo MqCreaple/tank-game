@@ -1,19 +1,19 @@
 package mqcreaple.tankgame.entity
 
-import javafx.scene.image.ImageView
 import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.controller.Controller
+import mqcreaple.tankgame.game.ServerGame
 
 abstract class ControllableEntity(
     gameIn: Game,
     imagePath: String,
     x: Double,
     y: Double,
-    private val controller: Controller
+    private val controllerName: String
 ) : Entity(gameIn, imagePath, x, y) {
-    override fun update(gameIn: Game, board: Board) {
-        val action = controller.actionAfterCoolDown
+    override fun update(gameIn: ServerGame, board: Board) {
+        val action = gameIn.getPlayer(controllerName)!!.controller.actionAfterCoolDown
         if(action is Controller.Action.MOVE) {
             val newX = x + velocity / gameIn.lastFPS * action.dir.x
             val newY = y + velocity / gameIn.lastFPS * action.dir.y

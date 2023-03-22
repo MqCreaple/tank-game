@@ -1,12 +1,12 @@
 package mqcreaple.tankgame.entity
 
-import javafx.scene.image.ImageView
 import javafx.scene.layout.AnchorPane
 import mqcreaple.tankgame.Direction
 import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.event.EntityCollisionEvent
+import mqcreaple.tankgame.game.ServerGame
 import mqcreaple.tankgame.utils.Overlap
 import java.io.Serializable
 import java.util.*
@@ -93,7 +93,7 @@ abstract class Entity(gameIn: Game, val imagePath: String, x: Double, y: Double)
     /**
      * This function is called in every frame update
      */
-    abstract fun update(gameIn: Game, board: Board)
+    abstract fun update(gameIn: ServerGame, board: Board)
 
     /**
      * Event when the entity collides with a non-empty block

@@ -23,7 +23,6 @@ class ServerApplication : Application() {
         val game = ServerGame(fxmlLoader.getController(), gamePort)
         stage.onCloseRequest = EventHandler { game.gameEnd = true }
         game.keyboardController = KeyboardController(scene)
-        game.scheduledAddEntity(TankEntity(game, 1, 0.5, 0.5, game.keyboardController))
         // start game thread
         val gameThread = Thread(game::gameMain)
         gameThread.name = "Game Thread"

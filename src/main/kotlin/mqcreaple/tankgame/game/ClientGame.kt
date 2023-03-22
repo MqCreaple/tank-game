@@ -31,8 +31,15 @@ class ClientGame(gui: BoardController, val name: String, val socket: Socket): Ga
         // get all events in this game loop from remote server
         while(true) {
             try {
-                val event = socketIStream.readObject() as Event
-                event.run(this)
+                val obj = socketIStream.readObject()
+                if(obj is Event) {
+                    obj.run(this)
+                } else if(obj is EntityPosition) {
+                    entityMap[obj.uuid]?.let {
+                        it.setX(obj.x, this)
+                        it.setY(obj.y, this)
+                    }
+                }
             } catch(_: Exception) {
                 break
             }

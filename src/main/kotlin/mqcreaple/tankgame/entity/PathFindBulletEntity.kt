@@ -1,10 +1,8 @@
 package mqcreaple.tankgame.entity
 
-import javafx.scene.image.ImageView
-import mqcreaple.tankgame.board.BackgroundBlock
 import mqcreaple.tankgame.board.Board
-import mqcreaple.tankgame.board.Wall
 import mqcreaple.tankgame.game.Game
+import mqcreaple.tankgame.game.ServerGame
 import kotlin.math.hypot
 
 class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, targetY: Int, defaultDirX: Double, defaultDirY: Double):
@@ -25,7 +23,7 @@ class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, tar
     var path = gameIn.gui.board.getPath(y.toInt(), x.toInt(), targetY, targetX)
     private var curAt = 0
 
-    override fun update(gameIn: Game, board: Board) {
+    override fun update(gameIn: ServerGame, board: Board) {
         path?.let {
             // there is a path from start to end, then follow the path
             val newX = x + it[curAt].x * velocity/ gameIn.lastFPS

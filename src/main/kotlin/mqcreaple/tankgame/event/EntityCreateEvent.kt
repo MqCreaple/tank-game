@@ -9,8 +9,12 @@ import mqcreaple.tankgame.game.Game
 
 class EntityCreateEvent(val entity: Entity): Event() {
     override fun run(game: Game) {
-        game.entityMap[entity.uuid] = entity
-        game.imageMap[entity.uuid] = ImageView(Entity::class.java.getResource(entity.imagePath)!!.toExternalForm())
+        synchronized(game.entityMap) {
+            game.entityMap[entity.uuid] = entity
+        }
+        synchronized(game.imageMap) {
+            game.imageMap[entity.uuid] = ImageView(Entity::class.java.getResource(entity.imagePath)!!.toExternalForm())
+        }
         Platform.runLater {
             synchronized(game.entityMap) {
                 val obj = game.imageMap[entity.uuid]!!

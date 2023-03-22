@@ -1,6 +1,7 @@
 package mqcreaple.tankgame.game
 
 import mqcreaple.tankgame.BoardController
+import mqcreaple.tankgame.controller.Controller
 import mqcreaple.tankgame.controller.ServerKeyboardController
 import mqcreaple.tankgame.entity.TankEntity
 import java.io.DataInputStream
@@ -16,12 +17,13 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
      * Mapping of player name to the player information
      */
     private var playerList = HashMap<String, Player>()
+    fun getPlayer(name: String) = playerList[name]
 
-    private class Player (
-        val socket: Socket,
-        val socketIStream: DataInputStream,
-        val socketOStream: ObjectOutputStream,
-        val controller: ServerKeyboardController,
+    class Player (
+        val socket: Socket?,
+        val socketIStream: DataInputStream?,
+        val socketOStream: ObjectOutputStream?,
+        val controller: Controller,
         val tank: TankEntity
         )
 
@@ -30,19 +32,24 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
         Thread {
             // This thread handles new client connection
             // TODO (potential DDOS attack)
-            // TODO (add lock to each field outside this thread)
             while(!gameEnd) {
                 // try to accept a new connection
                 val socket = serverSocket.accept()
                 val iStream = DataInputStream(socket.getInputStream())
                 val oStream = ObjectOutputStream(socket.getOutputStream())
                 // remove all closed hosts (to free up usable names)
-                for((name, player) in playerList) {
-                    if(player.socket.isClosed) {
-                        println("Player $name disconnected.")
-                        playerList.remove(name)
-                        scheduledRemoveEntity(player.tank)
-                        player.controller.controllerThread.join()
+                synchronized(playerList) {
+                    for((name, player) in playerList) {
+                        player.socket?.let {
+                            if(player.socket.isClosed) {
+                                println("Player $name disconnected.")
+                                playerList.remove(name)
+                                scheduledRemoveEntity(player.tank)
+                                if(player.controller is ServerKeyboardController) {
+                                    player.controller.controllerThread.join()
+                                }
+                            }
+                        }
                     }
                 }
                 try {
@@ -59,23 +66,62 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                     oStream.writeUTF("Successfully connected!")
                     oStream.flush()
                     val controller = ServerKeyboardController(socket)
-                    val tank = TankEntity(this, 1, 0.0, 0.0, controller)
+                    val tank = TankEntity(this, 1, 0.0, 0.0, name)
                     playerList[name] = Player(socket, iStream, oStream, controller, tank)
                     scheduledAddEntity(tank)  // add tank entity to game's entity list in the start of next game loop
-                    oStream.writeUTF(gui.board.toString()) // write current game board to the stream
+                    synchronized(this.gui) {
+                        oStream.writeUTF(gui.board.toString()) // write current game board to the stream
+                    }
                     oStream.flush()
                 } catch(e: IOException) {
                     // ignore IO exception
                 }
             }
         }.start()
+        // add default player (controlled by keyboard controller)
+        val defaultTank = TankEntity(this, 1, 0.5, 0.5, "default")
+        scheduledAddEntity(defaultTank)
+        playerList["default"] = Player(null, null, null, keyboardController, defaultTank)
     }
 
     override fun update() {
+        // send events and entity updates to client sockets
+        synchronized(playerList) {
+            val nameToRemove = ArrayList<String>()
+            for((name, client) in playerList) {
+                client.socket?.let {
+                    if(client.socket.isClosed) {
+                        // player disconnected, then remove its data from player list
+                        nameToRemove.add(name)
+                    } else {
+                        // player is still connected, then write all events and entity positions to the remote player
+                        synchronized(eventQueue) {
+                            for(event in eventQueue) {
+                                client.socketOStream!!.writeObject(event)
+                            }
+                        }
+                        synchronized(entityMap) {
+                            for((uuid, entity) in entityMap) {
+                                client.socketOStream!!.writeObject(EntityPosition(uuid, entity.x, entity.y))
+                            }
+                        }
+                    }
+                }
+            }
+            // remove all names in the scheduled list
+            for(name in nameToRemove) {
+                println("player $name disconnected.")
+                scheduledRemoveEntity(playerList[name]!!.tank)
+                playerList.remove(name)
+            }
+        }
+
         // run every event
-        while(!eventQueue.isEmpty()) {
-            val event = eventQueue.removeFirst()
-            event.run(this)
+        synchronized(eventQueue) {
+            while(!eventQueue.isEmpty()) {
+                val event = eventQueue.removeFirst()
+                event.run(this)
+            }
         }
 
         // update all entity
@@ -84,18 +130,16 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                 entity.update(this, gui.board)
             }
         }
-
-        // send events and entity updates to client sockets
-        for((_, client) in playerList) {
-            for(event in eventQueue) {
-                client.socketOStream.writeObject(event)
-            }
-        }
     }
 
     override fun gameTerminate() {
-        for((name, player) in playerList) {
-            player.socket.close()
+        synchronized(playerList) {
+            // disconnect all remote players
+            for((name, player) in playerList) {
+                player.socket?.let {
+                    player.socket.close()
+                }
+            }
         }
         serverSocket.close()
     }
