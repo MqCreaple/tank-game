@@ -10,7 +10,7 @@ import java.lang.Exception
 import java.lang.NullPointerException
 import java.net.Socket
 
-class ClientGame(gui: BoardController, val name: String, val socket: Socket): Game(gui, false) {
+class ClientGame(gui: BoardController, name: String, val socket: Socket): Game(gui, false) {
     val socketIStream: ObjectInputStream
     val socketOStream: DataOutputStream
 

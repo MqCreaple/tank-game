@@ -4,6 +4,7 @@ import mqcreaple.tankgame.BoardController
 import mqcreaple.tankgame.controller.Controller
 import mqcreaple.tankgame.controller.ServerKeyboardController
 import mqcreaple.tankgame.entity.TankEntity
+import mqcreaple.tankgame.event.EntityCreateEvent
 import java.io.DataInputStream
 import java.io.IOException
 import java.io.ObjectOutputStream
@@ -73,13 +74,20 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                         oStream.writeUTF(gui.board.toString()) // write current game board to the stream
                     }
                     oStream.flush()
+                    synchronized(this.entityMap) {
+                        // write all existing entities through socket to the client
+                        for((_, entity) in entityMap) {
+                            oStream.writeObject(EntityCreateEvent(entity))
+                        }
+                        oStream.flush()
+                    }
                 } catch(e: IOException) {
                     // ignore IO exception
                 }
             }
         }.start()
         // add default player (controlled by keyboard controller)
-        val defaultTank = TankEntity(this, 1, 0.5, 0.5, "default")
+        val defaultTank = TankEntity(this, 2, 0.5, 0.5, "default")
         scheduledAddEntity(defaultTank)
         playerList["default"] = Player(null, null, null, keyboardController, defaultTank)
     }
