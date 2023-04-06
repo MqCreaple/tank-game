@@ -2,13 +2,14 @@ package mqcreaple.tankgame.controller
 
 import javafx.scene.input.KeyCode
 import mqcreaple.tankgame.Direction
+import mqcreaple.tankgame.entity.ControllableEntity
 import mqcreaple.tankgame.utils.ByteOrder
 import java.io.DataInputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
 
-class ServerKeyboardController(clientSocket: Socket): Controller() {
+class ServerKeyboardController(controlling: ControllableEntity, clientSocket: Socket): Controller(controlling) {
     private var keyPressed: MutableMap<KeyCode, Boolean> = KeyboardController.keyMap.keys.associateWithTo(mutableMapOf()) { false }
     val controllerThread: Thread = Thread {
         var disconnected = false

@@ -1,12 +1,13 @@
 package mqcreaple.tankgame.entity
 
+import mqcreaple.tankgame.Direction
 import mqcreaple.tankgame.board.Board
 import mqcreaple.tankgame.game.Game
 import mqcreaple.tankgame.game.ServerGame
 import kotlin.math.hypot
 
-class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, targetY: Int, defaultDirX: Double, defaultDirY: Double):
-    BulletEntity(gameIn, x, y, defaultDirX, defaultDirY) {
+class PathFindBulletEntity(x: Double, y: Double, var path: List<Direction>?, defaultDirX: Double, defaultDirY: Double):
+    BulletEntity(x, y, defaultDirX, defaultDirY) {
     override val width: Double
         get() = 0.1
     override val height: Double
@@ -20,7 +21,6 @@ class PathFindBulletEntity(gameIn: Game, x: Double, y: Double, targetX: Int, tar
         this.dirY = defaultDirY * velocity / magnitude
     }
 
-    var path = gameIn.gui.board.getPath(y.toInt(), x.toInt(), targetY, targetX)
     private var curAt = 0
 
     override fun update(gameIn: ServerGame, board: Board) {

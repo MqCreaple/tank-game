@@ -1,10 +1,11 @@
 package mqcreaple.tankgame.controller
 
 import mqcreaple.tankgame.Direction
+import mqcreaple.tankgame.entity.ControllableEntity
 import java.time.Duration
 import java.time.Instant
 
-abstract class Controller {
+abstract class Controller(val controlling: ControllableEntity) {
     sealed class Action {
         abstract val coolDown: Double     // in milliseconds
         abstract val ordinal: Int

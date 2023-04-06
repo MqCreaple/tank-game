@@ -7,8 +7,8 @@ import mqcreaple.tankgame.board.Wall
 import mqcreaple.tankgame.game.ServerGame
 import kotlin.math.hypot
 
-open class BulletEntity(gameIn: Game, x: Double, y: Double, dirX: Double, dirY: Double):
-    Entity(gameIn, "enemy_bullet.png", x, y) {
+open class BulletEntity(x: Double, y: Double, dirX: Double, dirY: Double):
+    Entity("enemy_bullet.png", x, y) {
 
     override val width: Double
         get() = 0.1

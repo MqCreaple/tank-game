@@ -1,7 +1,9 @@
 package mqcreaple.tankgame.game
 
 import mqcreaple.tankgame.BoardController
+import mqcreaple.tankgame.controller.BotController
 import mqcreaple.tankgame.controller.Controller
+import mqcreaple.tankgame.controller.KeyboardController
 import mqcreaple.tankgame.controller.ServerKeyboardController
 import mqcreaple.tankgame.entity.TankEntity
 import mqcreaple.tankgame.event.EntityCreateEvent
@@ -13,6 +15,7 @@ import java.net.Socket
 
 class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
     val serverSocket = ServerSocket(port.toInt())
+    lateinit var keyboardController: KeyboardController
 
     /**
      * Mapping of player name to the player information
@@ -66,8 +69,8 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                     println("player $name connected!")
                     oStream.writeUTF("Successfully connected!")
                     oStream.flush()
-                    val controller = ServerKeyboardController(socket)
-                    val tank = TankEntity(this, 1, 0.0, 0.0, name)
+                    val tank = TankEntity(1, 0.0, 0.0, name)
+                    val controller = ServerKeyboardController(tank, socket)
                     playerList[name] = Player(socket, iStream, oStream, controller, tank)
                     scheduledAddEntity(tank)  // add tank entity to game's entity list in the start of next game loop
                     synchronized(this.gui) {
@@ -87,9 +90,11 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
             }
         }.start()
         // add default player (controlled by keyboard controller)
-        val defaultTank = TankEntity(this, 2, 0.5, 0.5, "default")
+        val defaultTank = TankEntity(2, 0.5, 0.5, "default")
         scheduledAddEntity(defaultTank)
-        playerList["default"] = Player(null, null, null, keyboardController, defaultTank)
+        playerList["default"] = Player(
+            null, null, null, BotController(defaultTank, this), defaultTank
+        )
     }
 
     override fun update() {

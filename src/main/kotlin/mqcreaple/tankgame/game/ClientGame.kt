@@ -2,6 +2,7 @@ package mqcreaple.tankgame.game
 
 import mqcreaple.tankgame.BoardController
 import mqcreaple.tankgame.board.Board
+import mqcreaple.tankgame.controller.KeyboardRemote
 import mqcreaple.tankgame.event.Event
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -11,12 +12,11 @@ import java.lang.NullPointerException
 import java.net.Socket
 
 class ClientGame(gui: BoardController, name: String, val socket: Socket): Game(gui, false) {
-    val socketIStream: ObjectInputStream
-    val socketOStream: DataOutputStream
+    private val socketIStream: ObjectInputStream = ObjectInputStream(socket.getInputStream())
+    private val socketOStream: DataOutputStream = DataOutputStream(socket.getOutputStream())
+    lateinit var keyboardRemote: KeyboardRemote
 
     init {
-        socketIStream = ObjectInputStream(socket.getInputStream())
-        socketOStream = DataOutputStream(socket.getOutputStream())
         socketOStream.writeUTF(name)
         val reply = socketIStream.readUTF()
         println(reply)
@@ -40,7 +40,8 @@ class ClientGame(gui: BoardController, name: String, val socket: Socket): Game(g
                         it.setY(obj.y, this)
                     }
                 }
-            } catch(_: Exception) {
+            } catch(e: Exception) {
+                e.printStackTrace()
                 break
             }
         }

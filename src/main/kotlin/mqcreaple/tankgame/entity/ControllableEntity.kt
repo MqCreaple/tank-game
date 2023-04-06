@@ -6,12 +6,11 @@ import mqcreaple.tankgame.controller.Controller
 import mqcreaple.tankgame.game.ServerGame
 
 abstract class ControllableEntity(
-    gameIn: Game,
     imagePath: String,
     x: Double,
     y: Double,
     private val controllerName: String
-) : Entity(gameIn, imagePath, x, y) {
+) : Entity(imagePath, x, y) {
     override fun update(gameIn: ServerGame, board: Board) {
         val action = gameIn.getPlayer(controllerName)!!.controller.actionAfterCoolDown
         if(action is Controller.Action.MOVE) {

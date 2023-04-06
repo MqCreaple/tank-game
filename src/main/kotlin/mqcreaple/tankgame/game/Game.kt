@@ -30,7 +30,6 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
     var lastFPS: Double = FPS
     var gameEnd: Boolean = false
     var eventQueue: ArrayDeque<Event> = ArrayDeque()
-    lateinit var keyboardController: KeyboardController
 
     fun scheduledAddEntity(entity: Entity) {
         synchronized(eventQueue) {

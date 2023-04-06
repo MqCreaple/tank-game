@@ -13,8 +13,8 @@ import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
-abstract class Entity(gameIn: Game, val imagePath: String, x: Double, y: Double): Serializable {
-    constructor(gameIn: Game, imagePath: String): this(gameIn, imagePath, 0.0, 0.0)
+abstract class Entity(val imagePath: String, x: Double, y: Double): Serializable {
+    constructor(imagePath: String): this(imagePath, 0.0, 0.0)
 
     val uuid: UUID = UUID.randomUUID()
 
@@ -54,9 +54,9 @@ abstract class Entity(gameIn: Game, val imagePath: String, x: Double, y: Double)
 
     // boundaries of this entity
     val xBound
-        get() = arrayOf(x, x + width)
+        get() = x..(x + width)
     val yBound
-        get() = arrayOf(y, y + height)
+        get() = y..(y + height)
 
     /**
      * Try to move to a new location.
@@ -82,8 +82,8 @@ abstract class Entity(gameIn: Game, val imagePath: String, x: Double, y: Double)
                 continue
             }
             if(
-                Overlap.interval(xBound[0], xBound[1], entity.xBound[0], entity.xBound[1]) &&
-                Overlap.interval(yBound[0], yBound[1], entity.yBound[0], entity.yBound[1])
+                Overlap.interval(xBound.start, xBound.endInclusive, entity.xBound.start, entity.xBound.endInclusive) &&
+                Overlap.interval(yBound.start, yBound.endInclusive, entity.yBound.start, entity.yBound.endInclusive)
             ) {
                 gameIn.eventQueue.add(EntityCollisionEvent(this.uuid, entity.uuid))
             }

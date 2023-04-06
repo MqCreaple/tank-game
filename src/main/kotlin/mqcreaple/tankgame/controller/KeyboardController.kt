@@ -4,14 +4,12 @@ import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.input.KeyCode
 import mqcreaple.tankgame.Direction
+import mqcreaple.tankgame.entity.ControllableEntity
 import mqcreaple.tankgame.utils.ByteOrder
 import java.io.OutputStream
 import java.net.Socket
 
-class KeyboardController(scene: Scene, socket: Socket?): Controller() {
-    constructor(scene: Scene): this(scene, null)
-
-    private val stream: OutputStream? = socket?.getOutputStream()
+class KeyboardController(controlling: ControllableEntity, scene: Scene): Controller(controlling) {
     private var keyPressed: MutableMap<KeyCode, Boolean> = keyMap.keys.associateWithTo(mutableMapOf()) { false }
 
     init {
@@ -19,11 +17,6 @@ class KeyboardController(scene: Scene, socket: Socket?): Controller() {
             run {
                 if(e.code in keyPressed.keys) {
                     keyPressed[e.code] = true
-                    stream?.let {
-                        // protocol: first write the key code integer (in network byte order), then write 0x00 for key down or 0x01 for key up
-                        stream.write(ByteOrder.toNetOrd(e.code.code))
-                        stream.write(0x00)
-                    }
                 }
             }
         }
@@ -31,10 +24,6 @@ class KeyboardController(scene: Scene, socket: Socket?): Controller() {
             run {
                 if(e.code in keyPressed.keys) {
                     keyPressed[e.code] = false
-                    stream?.let {
-                        stream.write(ByteOrder.toNetOrd(e.code.code))
-                        stream.write(0x01)
-                    }
                 }
             }
         }

@@ -6,6 +6,8 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
 import mqcreaple.tankgame.controller.KeyboardController
+import mqcreaple.tankgame.controller.KeyboardRemote
+import mqcreaple.tankgame.entity.TankEntity
 import mqcreaple.tankgame.game.ClientGame
 import java.net.Socket
 
@@ -26,7 +28,7 @@ class ClientApplication: Application() {
         // initialize game object
         val game = ClientGame(fxmlLoader.getController(), name, socket)
         stage.onCloseRequest = EventHandler { game.gameEnd = true }
-        game.keyboardController = KeyboardController(scene, game.socket)
+        game.keyboardRemote = KeyboardRemote(scene, game.socket)
         val gameThread = Thread(game::gameMain)
         gameThread.name = "Game Thread"
         gameThread.start()

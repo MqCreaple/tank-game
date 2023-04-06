@@ -23,6 +23,11 @@ class Board(
         }
     }
 
+    val widthDouble: Double
+        get() = width * unitPixel
+    val heightDouble: Double
+        get() = height * unitPixel
+
     operator fun get(y: Int, x: Int) = BackgroundBlock.fromChar(background[y][x], x, y)
     operator fun get(x: Double, y: Double) {
         val yi = y.toInt()
@@ -91,7 +96,7 @@ class Board(
         val dist: Array<Array<Int>> = Array(height) { Array(width) { Int.MAX_VALUE } }
         val visited: Array<Array<Boolean>> = Array(height) { Array(width) { false } }
         dist[startY][startX] = 0
-        queue.add(PointWithDist(startX, startY, manhattanDist(start, end)))
+        queue.add(PointWithDist(startX, startY, manhattanDist(startX, startY, endX, endY)))
         while(!queue.isEmpty()) {
             val current = queue.remove()
             if(visited[current.y][current.x]) {
@@ -148,10 +153,6 @@ class Board(
             val height = lines.size
             val width = lines[0].size
             return Board(width, height, lines, images, pane)
-        }
-
-        private fun manhattanDist(a: Pair<Int, Int>, b: Pair<Int, Int>): Int {
-            return abs(a.first - b.first) + abs(a.second - b.second)
         }
 
         private fun manhattanDist(ax: Int, ay: Int, bx: Int, by: Int): Int {
