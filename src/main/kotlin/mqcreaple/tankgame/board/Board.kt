@@ -23,11 +23,6 @@ class Board(
         }
     }
 
-    val widthDouble: Double
-        get() = width * unitPixel
-    val heightDouble: Double
-        get() = height * unitPixel
-
     operator fun get(y: Int, x: Int) = BackgroundBlock.fromChar(background[y][x], x, y)
     operator fun get(x: Double, y: Double) {
         val yi = y.toInt()

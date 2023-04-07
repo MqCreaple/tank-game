@@ -68,8 +68,8 @@ abstract class Entity(val imagePath: String, x: Double, y: Double): Serializable
             onCollideWithBorder(gameIn, board)
         }
         // detect collision with blocks
-        val boundNewX = max(0.0, min(board.width.toDouble(), newX))
-        val boundNewY = max(0.0, min(board.height.toDouble(), newY))
+        val boundNewX = max(0.0, min(board.width.toDouble() - width, newX))
+        val boundNewY = max(0.0, min(board.height.toDouble() - height, newY))
         val blocks = board.getCoveredBlocks(boundNewX, boundNewY, width, height)
         if(blocks.all { b -> b.canPass }) {
             setX(boundNewX, gameIn)
@@ -115,5 +115,9 @@ abstract class Entity(val imagePath: String, x: Double, y: Double): Serializable
      */
     open fun kill(gameIn: Game) {
         gameIn.scheduledRemoveEntity(this)
+    }
+
+    companion object {
+        const val serialVersionUID: Long = 1
     }
 }

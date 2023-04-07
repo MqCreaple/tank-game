@@ -110,7 +110,7 @@ abstract class Game(val gui: BoardController, val server: Boolean) {
 
     data class EntityPosition(val uuid: UUID, val x: Double, val y: Double): Serializable {
         companion object {
-            private const val serialVersionUID: Long = 114515
+            const val serialVersionUID: Long = 114515
         }
     }
 }

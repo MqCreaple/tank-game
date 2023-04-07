@@ -1,6 +1,8 @@
 package mqcreaple.tankgame.controller
 
 import javafx.application.Platform
+import javafx.scene.paint.Color
+import javafx.scene.shape.Line
 import javafx.scene.shape.Rectangle
 import mqcreaple.tankgame.Direction
 import mqcreaple.tankgame.entity.ControllableEntity
@@ -31,6 +33,7 @@ class BotController(
             field = value
             if(value != null) {
                 path = findPath(this.controlling.x, this.controlling.y, value, 0.1)
+                logPath(path)
             }
         }
 
@@ -113,8 +116,8 @@ class BotController(
                     nextDist + manhattanDist(cur.realX, cur.realY, target.x, target.y))
 
                 // if the next position is within the game board's bound
-                if(next.realX !in 0.0..(gameIn.gui.board.widthDouble - controlling.width) ||
-                        next.realY !in 0.0..(gameIn.gui.board.heightDouble - controlling.height)) {
+                if(next.realX !in 0.0..(gameIn.gui.board.width - controlling.width) ||
+                        next.realY !in 0.0..(gameIn.gui.board.height - controlling.height)) {
                     continue
                 }
                 if(visited.contains(next.dPos)) {
@@ -124,8 +127,8 @@ class BotController(
                 if(gameIn.gui.board.getCoveredBlocks(next.realX, next.realY, controlling.width, controlling.height).any { block -> !block.canPass }) {
                     continue
                 }
-                if(distAndDir[next.dPos]?.let { it.first < next.estimatedDist } != false) {
-                    distAndDir[next.dPos] = Pair(next.estimatedDist, direction)
+                if(distAndDir[next.dPos]?.let { nextDist < it.first } != false) {
+                    distAndDir[next.dPos] = Pair(nextDist, direction)
                     queue.add(next)
                 }
             }
@@ -149,7 +152,21 @@ class BotController(
                 }
                 lastDir = newLastDir
             }
+            if(pathDist > 0.0) {
+                path.add(PathSegment(lastPoint.realX, lastPoint.realY, lastDir, pathDist))
+            }
             return path
+        }
+    }
+
+    private fun logPath(path: ArrayList<PathSegment>?) {
+        path?.let {
+            Platform.runLater {
+                gameIn.gui.clearPath()
+                for(segment in it) {
+                    gameIn.gui.addPath(segment.x, segment.y, segment.x + segment.dir.x * segment.dist, segment.y + segment.dir.y * segment.dist)
+                }
+            }
         }
     }
 

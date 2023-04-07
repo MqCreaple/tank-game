@@ -5,6 +5,8 @@ import javafx.scene.control.Label
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.VBox
+import javafx.scene.paint.Color
+import javafx.scene.shape.Line
 import mqcreaple.tankgame.board.Board
 import java.io.File
 import kotlin.math.*
@@ -27,6 +29,8 @@ class BoardController {
     @FXML
     lateinit var fps: Label
 
+    val paths: ArrayList<Line> = ArrayList()
+
     @FXML
     fun initialize() {
         initialize(File("board.txt").readText())
@@ -47,5 +51,23 @@ class BoardController {
                 }
             }
         }
+    }
+
+    fun clearPath() {
+        paths.forEach { gamePane.children.remove(it) }
+        paths.clear()
+    }
+
+    fun addPath(startX: Double, startY: Double, endX: Double, endY: Double) {
+        val line = Line(
+            startX * Board.unitPixel,
+            (board.height - startY) * Board.unitPixel,
+            endX * Board.unitPixel,
+            (board.height - endY) * Board.unitPixel
+        )
+        line.stroke = Color.RED
+        line.strokeWidth = 2.0
+        gamePane.children.add(line)
+        paths.add(line)
     }
 }
