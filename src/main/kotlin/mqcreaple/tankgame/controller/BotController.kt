@@ -1,5 +1,7 @@
 package mqcreaple.tankgame.controller
 
+import javafx.application.Platform
+import javafx.scene.shape.Rectangle
 import mqcreaple.tankgame.Direction
 import mqcreaple.tankgame.entity.ControllableEntity
 import mqcreaple.tankgame.entity.Entity
@@ -12,25 +14,49 @@ import kotlin.math.abs
 class BotController(
     controlling: ControllableEntity,
     private val gameIn: Game,
-    target: UUID?,
+    target: Entity?,
     ): Controller(controlling) {
-    var path: ArrayList<Pair<Direction, Double>>? = null
+    /**
+     * Represents a segment in the calculated path.
+     * @param x starting x coordinate
+     * @param y starting y coordinate
+     * @param dir direction to move
+     * @param dist distance to move
+     */
+    data class PathSegment(val x: Double, val y: Double, val dir: Direction, var dist: Double)
+
+    var path: ArrayList<PathSegment>? = null
     var target = target
         set(value) {
             field = value
             if(value != null) {
-                path = gameIn.entityMap[value]?.let { findPath(this.controlling.x, this.controlling.y, it, 0.1) }
+                path = findPath(this.controlling.x, this.controlling.y, value, 0.1)
             }
         }
 
     constructor(controlling: ControllableEntity, gameIn: Game): this(controlling, gameIn, null)
 
     override fun getAction(): Action {
-        return if(path == null) {
-            Action.NONE
-        } else {
-            TODO("Move along path.")
-        }
+        return path?.let {
+            if(it.isEmpty()) {
+                path = null
+                Action.NONE
+            } else {
+                val dir = it[it.size - 1].dir
+                val originX = it[it.size - 1].x
+                val originY = it[it.size - 1].y
+                val distPassed = (controlling.x - originX) * dir.x + (controlling.y - originY) * dir.y
+                if(distPassed >= it[it.size - 1].dist) {
+                    it.removeLast()
+                }
+                if(it.isEmpty()) {
+                    path = null
+                    Action.NONE
+                } else {
+                    Action.MOVE(it[it.size - 1].dir)
+                }
+            }
+        } ?: Action.NONE
     }
 
     /**
@@ -41,26 +67,35 @@ class BotController(
      *
      * @param startX x coordinate of starting position
      * @param startY y coordinate of starting position
-     * @param target
+     * @param target target entity
+     * @param gridSize width/height of searching grid
      */
-    fun findPath(startX: Double, startY: Double, target: Entity, gridSize: Double): ArrayList<Pair<Direction, Double>>? {
-        data class PointWithDist(var dx: Int, var dy: Int, val estimatedDist: Double) {
+    fun findPath(startX: Double, startY: Double, target: Entity, gridSize: Double): ArrayList<PathSegment>? {
+        data class Pos(val x: Int, val y: Int) {
+            override fun equals(other: Any?): Boolean {
+                return other is Pos && other.x == x && other.y == y
+            }
+
+            override fun hashCode(): Int {
+                return x.hashCode() * 31 + y.hashCode()
+            }
+        }
+        data class PointWithDist(var dx: Int, var dy: Int, val estimatedDist: Double): Comparable<PointWithDist> {
             val dPos
-                get() = Pair(dx, dy)
+                get() = Pos(dx, dy)
             val realX: Double
                 get() = startX + dx * gridSize
             val realY: Double
-                get() = startY + dx * gridSize
-            operator fun compareTo(other: PointWithDist): Int = estimatedDist.compareTo(other.estimatedDist)
+                get() = startY + dy * gridSize
+            override operator fun compareTo(other: PointWithDist): Int = estimatedDist.compareTo(other.estimatedDist)
         }
 
         val queue = PriorityQueue<PointWithDist>()
-        val distAndDir = HashMap<Pair<Int, Int>, Pair<Double, Direction>>() // records distance from starting point to the point
-                                                                            // and the direction of last step to the point
-        val visited = HashSet<Pair<Int, Int>>()                             // contains all visited points (points whose shortest distance to starting point is determined)
+        val distAndDir = HashMap<Pos, Pair<Double, Direction>>() // records distance from starting point to the point
+                                                                 // and the direction of last step to the point
+        val visited = HashSet<Pos>()                             // contains all visited points (points whose shortest distance to starting point is determined)
         queue.add(PointWithDist(0, 0, manhattanDist(startX, startY, target.x, target.y)))
-        distAndDir[Pair(0, 0)] = Pair(0.0, Direction.UP)
-        visited.add(Pair(0, 0))
+        distAndDir[Pos(0, 0)] = Pair(0.0, Direction.UP)
         var found: PointWithDist? = null
         while(!queue.isEmpty()) {
             val cur = queue.remove()
@@ -82,12 +117,15 @@ class BotController(
                         next.realY !in 0.0..(gameIn.gui.board.heightDouble - controlling.height)) {
                     continue
                 }
+                if(visited.contains(next.dPos)) {
+                    continue
+                }
                 // if the controlled entity collide with blocks it cannot pass
                 if(gameIn.gui.board.getCoveredBlocks(next.realX, next.realY, controlling.width, controlling.height).any { block -> !block.canPass }) {
                     continue
                 }
-                if(distAndDir[Pair(next.dx, next.dy)]?.let { it.first < next.estimatedDist } != false) {
-                    distAndDir[Pair(next.dx, next.dy)] = Pair(next.estimatedDist, direction)
+                if(distAndDir[next.dPos]?.let { it.first < next.estimatedDist } != false) {
+                    distAndDir[next.dPos] = Pair(next.estimatedDist, direction)
                     queue.add(next)
                 }
             }
@@ -96,17 +134,17 @@ class BotController(
             // does not find any path from starting point to the target entity
             return null
         } else {
-            val path = ArrayList<Pair<Direction, Double>>()
+            val path = ArrayList<PathSegment>()
             val lastPoint = found
-            var lastDir = distAndDir[Pair(found.dx, found.dy)]!!.second
+            var lastDir = distAndDir[found.dPos]!!.second
             var pathDist = 0.0
             while(lastPoint.dx != 0 || lastPoint.dy != 0) {
                 lastPoint.dx -= lastDir.x
                 lastPoint.dy -= lastDir.y
                 pathDist += gridSize
-                val newLastDir = distAndDir[Pair(found.dx, found.dy)]!!.second
+                val newLastDir = distAndDir[found.dPos]!!.second
                 if(newLastDir != lastDir) {
-                    path.add(Pair(lastDir, pathDist))
+                    path.add(PathSegment(lastPoint.realX, lastPoint.realY, lastDir, pathDist))
                     pathDist = 0.0
                 }
                 lastDir = newLastDir

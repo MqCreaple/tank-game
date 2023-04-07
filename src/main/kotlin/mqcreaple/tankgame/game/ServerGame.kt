@@ -7,13 +7,27 @@ import mqcreaple.tankgame.controller.KeyboardController
 import mqcreaple.tankgame.controller.ServerKeyboardController
 import mqcreaple.tankgame.entity.TankEntity
 import mqcreaple.tankgame.event.EntityCreateEvent
+import mqcreaple.tankgame.event.Event
+import mqcreaple.tankgame.event.RecalcPathEvent
+import mqcreaple.tankgame.event.Timer
 import java.io.DataInputStream
 import java.io.IOException
 import java.io.ObjectOutputStream
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
+    class Player (
+        val socket: Socket?,
+        val socketIStream: DataInputStream?,
+        val socketOStream: ObjectOutputStream?,
+        val controller: Controller,
+        val tank: TankEntity
+    )
+
     val serverSocket = ServerSocket(port.toInt())
     lateinit var keyboardController: KeyboardController
 
@@ -23,13 +37,7 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
     private var playerList = HashMap<String, Player>()
     fun getPlayer(name: String) = playerList[name]
 
-    class Player (
-        val socket: Socket?,
-        val socketIStream: DataInputStream?,
-        val socketOStream: ObjectOutputStream?,
-        val controller: Controller,
-        val tank: TankEntity
-        )
+    var timers = PriorityQueue<Timer>()
 
     override fun gameInit() {
         println("Opened game at port $port")
@@ -84,6 +92,7 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
                         }
                         oStream.flush()
                     }
+                    (playerList["default"]!!.controller as BotController).target = tank
                 } catch(e: IOException) {
                     // ignore IO exception
                 }
@@ -92,9 +101,12 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
         // add default player (controlled by keyboard controller)
         val defaultTank = TankEntity(2, 0.5, 0.5, "default")
         scheduledAddEntity(defaultTank)
+        val botController = BotController(defaultTank, this)
         playerList["default"] = Player(
-            null, null, null, BotController(defaultTank, this), defaultTank
+            null, null, null, botController, defaultTank
         )
+        // add a timer that recalculate the bot's path
+        timers.add(Timer(RecalcPathEvent(botController), 1000, System.currentTimeMillis() + 1000))
     }
 
     override fun update() {
@@ -129,6 +141,15 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
             }
         }
 
+        // check timeout of timers
+        synchronized(timers) {
+            while(!timers.isEmpty() && timers.peek().nextTime <= System.currentTimeMillis()) {
+                val timer = timers.remove()
+                eventQueue.add(timer.event)
+                timers.add(Timer(timer.event, timer.timeMillis, timer.nextTime + timer.timeMillis))
+            }
+        }
+
         // run every event
         synchronized(eventQueue) {
             while(!eventQueue.isEmpty()) {
@@ -155,5 +176,11 @@ class ServerGame(gui: BoardController, val port: UShort): Game(gui, true) {
             }
         }
         serverSocket.close()
+    }
+
+    fun addTimer(event: Event, timeMillis: Long) {
+        synchronized(timers) {
+            timers.add(Timer(event, timeMillis, System.currentTimeMillis() + timeMillis))
+        }
     }
 }
